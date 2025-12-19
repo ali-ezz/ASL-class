@@ -1,0 +1,64 @@
+This README is designed specifically for the modular, improved version of your ASL project. It explains the new features, the file structure, and how they work together to create a professional fingerspelling tool.
+
+ASL Fingerspelling Pro 🤟
+This is an enhanced, modular version of the ASL Class Thinkers recognition system. While the original project laid the groundwork, this version is specifically optimized for Static Alphabet Recognition (A-Z) and Real-time Fingerspelling Translation.
+
+🌟 Key Improvements
+Stability Buffer (Anti-Flicker): Implemented a frame-buffer logic that prevents "jittery" predictions. A letter is only captured once the hand position remains stable for 10 consecutive frames.
+
+Sentence Builder: Added a persistent history state allowing users to chain letters together into words and sentences.
+
+Smart Confusion Logic: Integrated a custom calibration layer to handle common ASL "look-alikes" (e.g., distinguishing between M, N, S, and A).
+
+Text-to-Speech (TTS): Integrated the Web Speech API so the application can "speak" the transcribed fingerspelling aloud.
+
+Enhanced Preprocessing: Added CLAHE (Contrast Limited Adaptive Histogram Equalization) to the hand-detection pipeline to improve accuracy in low-light environments.
+
+📁 Modular File Structure
+To make the code cleaner and easier to maintain, the project has been split into functional modules:
+
+File	Purpose
+app.py	The main entry point and UI controller.
+config.py	Global settings, confusion pairs, and page configurations.
+asl_engine.py	The "brain"—handles stability logic and history management.
+hand_detector.py	Manages MediaPipe tracking and image enhancement (CLAHE).
+ui_components.py	Contains reusable UI elements like the Reference Gallery and TTS button.
+
+
+🛠️ Installation & Setup
+Clone the updated repository:
+
+Bash
+
+git clone https://github.com/ali-ezz/ASL_CLASS_THINKERS.git
+cd ASL_CLASS_THINKERS
+Install the required dependencies:
+
+Bash
+
+pip install streamlit opencv-python mediapipe numpy streamlit-webrtc
+Run the application:
+
+Bash
+
+streamlit run app.py
+📖 How to Use
+Launch the App: Open the Streamlit URL in your browser.
+
+Position Hand: Place your hand in the camera view. The system will detect your hand and draw a bounding box.
+
+Hold for 1 Second: To "type" a letter, hold the sign steady. Once the STABLE indicator appears, the letter is added to your word.
+
+Edit your Word: Use the Backspace or Clear buttons to refine your sentence.
+
+Listen: Click the 🔊 Speak button to hear the final transcription.
+
+👥 Contributors
+Ali Ezz
+
+Ahmed Sabry
+
+Ahmed Abo Bakr
+
+Note: This version focuses exclusively on static hand gestures (Alphabet). For dynamic signs (motion-based), please refer to the legacy branch.
+
