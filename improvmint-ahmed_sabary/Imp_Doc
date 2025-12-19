@@ -1,0 +1,65 @@
+
+
+# Technical Documentation: ASL Fingerspelling Improvements
+
+## 1. Executive Summary
+The transition from a general "ASL Multi-Model Classifier" to the "Fingerspelling Pro" version involved shifting focus from broad gesture detection to high-precision static hand-shape classification. The core objective was to turn a machine learning model into a functional communication tool by adding temporal stability, lexical building, and accessibility features.
+
+## 2. Architectural Overhaul (Modularity)
+The original `app.py` was a monolithic script. The improved version follows a Modular Design Pattern, separating concerns into five distinct layers:
+
+| Module            | Technical Role                                   | Benefit                                                                 |
+|-------------------|--------------------------------------------------|-------------------------------------------------------------------------|
+| config.py         | State management & constant definitions.         | Allows for easy tuning of confidence thresholds without touching logic. |
+| hand_detector.py   | MediaPipe interface & CV2 preprocessing.        | Simplifies the pipeline; makes it easy to swap MediaPipe for YOLO or other detectors. |
+| asl_engine.py     | Temporal logic & sequence management.            | Decouples the "What" (classification) from the "How" (word building).  |
+| ui_components.py  | Frontend rendering & Browser API calls.          | Keeps the UI clean and handles complex JavaScript injections (TTS).     |
+| app.py            | Orchestration layer.                             | Reduced to less than 100 lines, making it easy to read and debug.      |
+
+## 3. Core Logic Improvements
+
+### A. Stability-Based Auto-Capture (The "Hysteresis" Filter)
+**The Problem:** Real-time ML models often "flicker" between classes (e.g., showing 'M' and 'N' 30 times per second) due to slight hand movements or lighting changes.  
+**The Solution:** Implemented a Temporal Stability Buffer using a `collections.deque`. The engine tracks the last 10-15 frames. A letter is only "finalized" and added to the word if the buffer is 100% consistent.  
+**Result:** Eliminated accidental "double-typing" and jitter.
+
+### B. Enhanced Preprocessing (CLAHE)
+**The Problem:** Standard RGB frames often lack the contrast required for the model to see the difference between a thumb tucked over the index finger (letter 'T') vs. tucked under (letter 'S').  
+**The Solution:** Integrated CLAHE (Contrast Limited Adaptive Histogram Equalization) in the HandDetector class. This normalizes lighting across the hand surface, making the "ridges" of the fingers more prominent for the CNN.
+
+### C. Smart Confusion Mapping
+**The Problem:** Certain letters are mathematically similar in hand-pose space (A, S, E, M, N).  
+**The Solution:** Created a `CONFUSION_PAIRS` dictionary. When the top prediction has low confidence (\(< 0.85\)), the system cross-references these pairs to provide "Did you mean?" suggestions or context-aware corrections.
+
+## 4. UI & UX Enhancements
+
+### A. Lexical Builder (Sentence Management)
+We introduced a session-state-driven history list. This transforms the app from an "identifier" to a "writer."
+- **Backspace/Clear:** Integrated state manipulation to allow real-time editing.
+- **Space Bar:** Added a dedicated gesture or button to allow the building of multiple words.
+
+### B. Accessibility: Text-to-Speech (TTS)
+To bridge the gap between signing and hearing, we injected a JavaScript-based interface to the Web Speech API.
+- **Method:** Used `st.components.v1.html` to execute a `speechSynthesis` call.
+- **Impact:** Allows a user who is non-verbal to use the app as a voice synthesizer.
+
+### C. On-Screen Reference
+Integrated an ASL Reference Gallery in the sidebar. This reduces the cognitive load on the user, as they no longer need to look away from the screen to remember the sign for a specific letter.
+
+## 5. Performance Metrics Comparison
+
+| Feature                | Original Version               | Improved Version               |
+|------------------------|--------------------------------|--------------------------------|
+| Output Type            | Single-frame label             | Continuous word string         |
+| Prediction Stability    | Low (Flickers frequently)      | High (Stable output)          |
+| Accuracy in Low Light   | Poor                           | Improved (via CLAHE)          |
+| User Interaction        | Passive (Observation)          | Active (Word Building)        |
+| Accessibility          | Visual only                    | Visual + Auditory (TTS)       |
+
+## 6. Maintenance and Future Scaling
+The modular structure allows for the following future upgrades without a full rewrite:
+- **Model Swapping:** Replace the CNN in `asl_engine.py` with a more advanced model like a Transformer-based hand classifier.
+- **Language Support:** Add `CONFUSION_PAIRS` for British Sign Language (BSL) or other regional alphabets.
+- **Autocorrect:** Integrate a Python library like `pyspellchecker` to automatically suggest corrections for misspelled fingerspelled words.
+
+---
